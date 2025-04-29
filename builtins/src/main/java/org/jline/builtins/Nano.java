@@ -1426,7 +1426,7 @@ public class Nano implements Editor {
         }
     }
 
-    protected static class PatternHistory {
+    public static class PatternHistory {
         private final Path historyFile;
         private final int size = 100;
         private List<String> patterns = new ArrayList<>();

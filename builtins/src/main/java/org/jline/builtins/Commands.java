@@ -171,7 +171,7 @@ public class Commands {
         less.run(sources);
     }
 
-    protected static List<Path> findFiles(Path root, String files) throws IOException {
+    public static List<Path> findFiles(Path root, String files) throws IOException {
         files = files.startsWith("~") ? files.replace("~", System.getProperty("user.home")) : files;
         String regex = files;
         Path searchRoot = Paths.get("/");

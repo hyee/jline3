@@ -189,8 +189,8 @@ public class Status {
             }
             terminal.puts(Capability.restore_cursor);
         }
-        // update display
-        display.update(lines, -1, flush);
+        // update display, use 0 instead of -1 to avoid initCursor to be called to prevent the screen from scrolling
+        display.update(lines, 0, flush);
     }
 
     private AttributedString getBorderString(int columns) {
