@@ -1249,13 +1249,13 @@ public class LineReaderImpl implements LineReader, Flushable {
             size.copy(terminal.getBufferSize());
             display.resize(size.getRows(), size.getColumns());
             Status status = Status.getStatus(terminal, false);
-            if (status != null) {
-                status.resize(size);
-                status.reset();
+            //terminal.puts(Capability.carriage_return);
+            //terminal.puts(Capability.clr_eos);
+            if(status!=null) {
+                status.resize();
+                status.hide();
             }
-            terminal.puts(Capability.carriage_return);
-            terminal.puts(Capability.clr_eos);
-            redrawLine();
+            //redrawLine(); //restores prompt but also prevents scrolling in consoleZ, see #492
             redisplay();
         } else if (signal == Signal.CONT) {
             terminal.enterRawMode();
