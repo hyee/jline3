@@ -23,12 +23,14 @@ public class Status {
 
     protected final Terminal terminal;
     protected final boolean supported;
-    protected boolean suspended = false;
+    protected volatile boolean suspended = false;
+    protected volatile boolean closed = true;
+    protected volatile boolean hided = true;
     protected AttributedString borderString;
     protected int border = 0;
-    protected Display display;
+    protected volatile Display display;
     protected List<AttributedString> lines = Collections.emptyList();
-    protected int scrollRegion;
+    protected volatile int scrollRegion;
 
     public static Status getStatus(Terminal terminal) {
         return getStatus(terminal, true);
@@ -40,6 +42,18 @@ public class Status {
 
     public static Status getStatus(Terminal terminal, boolean create) {
         return terminal instanceof AbstractTerminal ? ((AbstractTerminal) terminal).getStatus(create) : null;
+    }
+    public boolean isSuspended() {
+        return suspended;
+    }
+    public boolean isClosed() {
+        return closed;
+    }
+    public boolean isSupported() {
+        return supported;
+    }
+    public boolean isHided() {
+        return hided;
     }
 
     @SuppressWarnings("this-escape")
@@ -59,7 +73,7 @@ public class Status {
     }
 
     private boolean isValid(Size size) {
-        return size.getRows() > 0 && size.getRows() < 1000 && size.getColumns() > 0 && size.getColumns() < 1000;
+        return size.getRows() > 0 && size.getRows() < 1000 && size.getColumns() > 0;
     }
 
     public void close() {
@@ -68,6 +82,7 @@ public class Status {
             terminal.puts(Capability.change_scroll_region, 0, display.rows - 1);
             terminal.puts(Capability.restore_cursor);
             terminal.flush();
+            closed = true;
         }
     }
 
@@ -102,6 +117,7 @@ public class Status {
 
     public void hide() {
         update(Collections.emptyList());
+        hided=true;
     }
 
     public void update(List<AttributedString> lines) {
@@ -116,7 +132,7 @@ public class Status {
      * be updated.
      */
     public void update(List<AttributedString> lines, boolean flush) {
-        if (!supported) {
+        if (!supported && suspended) {
             return;
         }
         this.lines = new ArrayList<>(lines);
@@ -130,6 +146,8 @@ public class Status {
         int columns = display.columns;
         if (border == 1 && !lines.isEmpty() && rows > 1) {
             lines.add(0, getBorderString(columns));
+        } else if(!lines.isEmpty()) {
+            hided=false;
         }
         // trim or complete lines to the full width
         for (int i = 0; i < lines.size(); i++) {
@@ -172,6 +190,7 @@ public class Status {
             terminal.puts(Capability.restore_cursor);
             scrollRegion = newScrollRegion;
         }
+        closed = false;
 
         // if the display has more lines, we need to add empty ones to make sure they will be erased
         List<AttributedString> toDraw = new ArrayList<>(lines);
@@ -189,8 +208,8 @@ public class Status {
             }
             terminal.puts(Capability.restore_cursor);
         }
-        // update display, use 0 instead of -1 to avoid initCursor to be called to prevent the screen from scrolling
-        display.update(lines, 0, flush);
+        // update display
+        display.update(lines, -1, flush);
     }
 
     private AttributedString getBorderString(int columns) {
@@ -257,6 +276,9 @@ public class Status {
             super.update(newLines, targetCursorPos, flush);
             if (cursorPos != -1) {
                 terminal.puts(Capability.restore_cursor);
+                if (flush) {
+                    terminal.flush();
+                }
             }
         }
 
