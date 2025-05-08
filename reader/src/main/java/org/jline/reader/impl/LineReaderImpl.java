@@ -1246,16 +1246,21 @@ public class LineReaderImpl implements LineReader, Flushable {
     protected synchronized void handleSignal(Signal signal) {
         doAutosuggestion = false;
         if (signal == Signal.WINCH) {
-            size.copy(terminal.getBufferSize());
+            Size size1=terminal.getBufferSize();
+            if(size1.getRows() >0 && size.getRows()==size1.getRows() && size.getColumns()==size1.getColumns()) {
+                return;
+            }
+            size.copy(size1);
             display.resize(size.getRows(), size.getColumns());
             Status status = Status.getStatus(terminal, false);
-            //terminal.puts(Capability.carriage_return);
-            //terminal.puts(Capability.clr_eos);
             if(status!=null) {
-                status.resize();
                 status.hide();
+                status.resize();
             }
+            terminal.puts(Capability.carriage_return);
+            terminal.puts(Capability.clr_eos);
             //redrawLine(); //restores prompt but also prevents scrolling in consoleZ, see #492
+            display.empty();
             redisplay();
         } else if (signal == Signal.CONT) {
             terminal.enterRawMode();

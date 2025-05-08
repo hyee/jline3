@@ -90,6 +90,13 @@ public class Display {
         oldLines = Collections.emptyList();
     }
 
+    public void empty() {
+        for(int i=0;i<oldLines.size();i++) {
+            final int len = oldLines.get(i).columnLength();
+            oldLines.set(i,AttributedString.fromAnsi(new String(new char[len])));
+        }
+    }
+
     /**
      * Clears the whole screen.
      * Use this method only when using full-screen / application mode.
