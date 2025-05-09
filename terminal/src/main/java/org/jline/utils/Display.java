@@ -68,6 +68,10 @@ public class Display {
         this.topMode = topMode;
     }
 
+    public boolean getTopMode() {
+        return this.topMode;
+    }
+
     public void setDelayLineWrap(boolean v) {
         delayLineWrap = v;
     }
@@ -134,7 +138,6 @@ public class Display {
                 cursorPos = 0;
                 reset = false;
             }
-
             // If dumb display, get rid of ansi sequences now
             Integer cols = terminal.getNumericCapability(Capability.max_colors);
             if (cols == null || cols < 8) {
@@ -142,7 +145,7 @@ public class Display {
                         .map(s -> new AttributedString(s.toString()))
                         .collect(Collectors.toList());
             }
-
+            int oldPos = cursorPos;
             // Detect scrolling
             if ((fullScreen || newLines.size() >= rows) && newLines.size() == oldLines.size() && canScroll) {
                 int nbHeaders = 0;
@@ -336,12 +339,14 @@ public class Display {
                         cursorPos = curCol;
                     }
                     currentPos = cursorPos;
-                } /*else if(topMode) {
-                    rawPrint('\n');
-                    cursorPos = moveVisualCursorTo(curCol + columns1);
-                    currentPos = cursorPos;
-                }*/
+                }
             }
+
+            //scroll up screen for top mode
+            if(topMode && oldPos == 0 && rows > nlines) {
+                moveVisualCursorTo((rows -1) *columns1);
+            }
+
             if (cursorPos != targetCursorPos) {
                 moveVisualCursorTo(targetCursorPos < 0 ? currentPos : targetCursorPos, newLines);
             }

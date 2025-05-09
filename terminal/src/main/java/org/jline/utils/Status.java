@@ -132,7 +132,7 @@ public class Status {
      * be updated.
      */
     public void update(List<AttributedString> lines, boolean flush) {
-        if (!supported && suspended) {
+        if (!supported || suspended) {
             return;
         }
         this.lines = new ArrayList<>(lines);
