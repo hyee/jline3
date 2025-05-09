@@ -1247,11 +1247,10 @@ public class LineReaderImpl implements LineReader, Flushable {
         doAutosuggestion = false;
         if (signal == Signal.WINCH) {
             Size size1=terminal.getBufferSize();
-            if(size1.getRows() >0 && size.getRows()==size1.getRows() && size.getColumns()==size1.getColumns()) {
+            if(size1.getRows() > 1  && Math.abs(size.getRows()-size1.getRows()) <3 && Math.abs(size.getColumns() - size1.getColumns()) <3) {
                 return;
             }
             size.copy(size1);
-            display.resize(size.getRows(), size.getColumns());
             Status status = Status.getStatus(terminal, false);
             if(status!=null) {
                 status.hide();
@@ -1259,6 +1258,7 @@ public class LineReaderImpl implements LineReader, Flushable {
             }
             terminal.puts(Capability.carriage_return);
             terminal.puts(Capability.clr_eos);
+            display.resize(size.getRows(), size.getColumns());
             //redrawLine(); //restores prompt but also prevents scrolling in consoleZ, see #492
             display.empty();
             redisplay();

@@ -454,7 +454,7 @@ public class Display {
      * but does not know how to move *to* the right margin.
      * I.e. {@code (i1 % columns1) == column} is not allowed.
      */
-    protected int moveVisualCursorTo(int i1) {
+    public int moveVisualCursorTo(int i1) {
         int i0 = cursorPos;
         if (i0 == i1) return i1;
         int width = columns1;
