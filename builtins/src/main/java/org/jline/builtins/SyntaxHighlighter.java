@@ -82,11 +82,11 @@ public class SyntaxHighlighter {
         rules.putAll(defaultRules);
     }
 
-    protected static SyntaxHighlighter build(List<Path> syntaxFiles, String file, String syntaxName) {
+    public static SyntaxHighlighter build(List<Path> syntaxFiles, String file, String syntaxName) {
         return build(syntaxFiles, file, syntaxName, false);
     }
 
-    protected static SyntaxHighlighter build(
+    public static SyntaxHighlighter build(
             List<Path> syntaxFiles, String file, String syntaxName, boolean ignoreErrors) {
         SyntaxHighlighter out = new SyntaxHighlighter();
         Map<String, String> colorTheme = new HashMap<>();
@@ -165,15 +165,15 @@ public class SyntaxHighlighter {
         return out;
     }
 
-    protected static void nanorcInclude(String parameter, List<Path> syntaxFiles) throws IOException {
+    public static void nanorcInclude(String parameter, List<Path> syntaxFiles) throws IOException {
         addFiles(parameter, s -> s.forEach(syntaxFiles::add));
     }
 
-    protected static void nanorcTheme(String parameter, List<Path> syntaxFiles) throws IOException {
+    public static void nanorcTheme(String parameter, List<Path> syntaxFiles) throws IOException {
         addFiles(parameter, s -> s.findFirst().ifPresent(p -> syntaxFiles.add(0, p)));
     }
 
-    protected static void addFiles(String parameter, Consumer<Stream<Path>> consumer) throws IOException {
+    public static void addFiles(String parameter, Consumer<Stream<Path>> consumer) throws IOException {
         if (parameter.contains("*") || parameter.contains("?")) {
             PathMatcher pathMatcher = FileSystems.getDefault().getPathMatcher("glob:" + parameter);
             try (Stream<Path> pathStream = Files.walk(Paths.get(new File(parameter).getParent()))) {
@@ -702,8 +702,8 @@ public class SyntaxHighlighter {
         }
     }
 
-    protected static class RuleSplitter {
-        protected static List<String> split(String s) {
+    public static class RuleSplitter {
+        public static List<String> split(String s) {
             List<String> out = new ArrayList<>();
             if (s.length() == 0) {
                 return out;

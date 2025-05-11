@@ -602,30 +602,32 @@ public final class InfoCmp {
     public static String getInfoCmp(String terminal) throws IOException, InterruptedException {
         IOException error = new IOException("Unable to retrieve infocmp for " + terminal);
         String caps = getLoadedInfoCmp(terminal);
-        if (caps == null) {
-            try {
-                Process p = new ProcessBuilder(OSUtils.INFOCMP_COMMAND, "-x", terminal).start();
-                caps = ExecHelper.waitAndCapture(p);
-                if (p.exitValue() != 0) {
-                    error.addSuppressed(new IOException("Command '" + OSUtils.INFOCMP_COMMAND + " -x " + terminal
-                            + "' failed with exit code " + p.exitValue() + " and output '" + caps + "'"));
-                    caps = null;
+        if(!OSUtils.IS_WINDOWS || OSUtils.IS_MSYSTEM || OSUtils.IS_CYGWIN) {
+            if (caps == null) {
+                try {
+                    Process p = new ProcessBuilder(OSUtils.INFOCMP_COMMAND, "-x", terminal).start();
+                    caps = ExecHelper.waitAndCapture(p);
+                    if (p.exitValue() != 0) {
+                        error.addSuppressed(new IOException("Command '" + OSUtils.INFOCMP_COMMAND + " -x " + terminal
+                                + "' failed with exit code " + p.exitValue() + " and output '" + caps + "'"));
+                        caps = null;
+                    }
+                } catch (IOException e) {
+                    error.addSuppressed(e);
                 }
-            } catch (IOException e) {
-                error.addSuppressed(e);
             }
-        }
-        if (caps == null) {
-            try {
-                Process p = new ProcessBuilder(OSUtils.INFOCMP_COMMAND, terminal).start();
-                caps = ExecHelper.waitAndCapture(p);
-                if (p.exitValue() != 0) {
-                    error.addSuppressed(new IOException("Command '" + OSUtils.INFOCMP_COMMAND + " " + terminal
-                            + "' failed with exit code " + p.exitValue() + " and output '" + caps + "'"));
-                    caps = null;
+            if (caps == null) {
+                try {
+                    Process p = new ProcessBuilder(OSUtils.INFOCMP_COMMAND, terminal).start();
+                    caps = ExecHelper.waitAndCapture(p);
+                    if (p.exitValue() != 0) {
+                        error.addSuppressed(new IOException("Command '" + OSUtils.INFOCMP_COMMAND + " " + terminal
+                                + "' failed with exit code " + p.exitValue() + " and output '" + caps + "'"));
+                        caps = null;
+                    }
+                } catch (IOException e) {
+                    error.addSuppressed(e);
                 }
-            } catch (IOException e) {
-                error.addSuppressed(e);
             }
         }
         if (caps != null) {

@@ -262,7 +262,7 @@ public class Commands {
      * @return a list of matching paths
      * @throws IOException if an I/O error occurs
      */
-    protected static List<Path> findFiles(Path root, String files) throws IOException {
+    public static List<Path> findFiles(Path root, String files) throws IOException {
         files = files.startsWith("~") ? files.replace("~", System.getProperty("user.home")) : files;
         String regex = files;
         Path searchRoot = Paths.get("/");

@@ -577,6 +577,15 @@ public final class TerminalBuilder {
         return terminal;
     }
 
+    public SystemStream getSystemStream(List<TerminalProvider> providers) {
+        SystemOutput systemOutput = computeSystemOutput();
+        Map<SystemStream, Boolean> system = Stream.of(SystemStream.values())
+                .collect(Collectors.toMap(
+                        stream -> stream, stream -> providers.stream().anyMatch(p -> p.isSystemStream(stream))));
+        SystemStream systemStream = select(system, systemOutput);
+        return select(system, systemOutput);
+    }
+
     private Terminal doBuild() throws IOException {
         String name = this.name;
         if (name == null) {
