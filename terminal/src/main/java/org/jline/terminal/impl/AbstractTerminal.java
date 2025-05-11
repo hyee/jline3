@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2002-2021, the original author(s).
+ * Copyright (c) 2002-2025, the original author(s).
  *
  * This software is distributable under the BSD license. See the terms of the
  * BSD license in the documentation provided with this software.
@@ -35,6 +35,38 @@ import org.jline.utils.InfoCmp.Capability;
 import org.jline.utils.Log;
 import org.jline.utils.Status;
 
+/**
+ * Base implementation of the Terminal interface.
+ *
+ * <p>
+ * This abstract class provides a common foundation for terminal implementations,
+ * handling many of the core terminal functions such as signal handling, attribute
+ * management, and capability lookup. It implements most of the methods defined in
+ * the {@link org.jline.terminal.Terminal} interface, leaving only a few abstract
+ * methods to be implemented by concrete subclasses.
+ * </p>
+ *
+ * <p>
+ * Terminal implementations typically extend this class and provide implementations
+ * for the abstract methods related to their specific platform or environment.
+ * This class handles the common functionality, allowing subclasses to focus on
+ * platform-specific details.
+ * </p>
+ *
+ * <p>
+ * Key features provided by this class include:
+ * </p>
+ * <ul>
+ *   <li>Signal handling infrastructure</li>
+ *   <li>Terminal attribute management</li>
+ *   <li>Terminal capability lookup and caching</li>
+ *   <li>Size and cursor position handling</li>
+ *   <li>Mouse and focus tracking support</li>
+ * </ul>
+ *
+ * @see org.jline.terminal.Terminal
+ * @see org.jline.terminal.spi.TerminalExt
+ */
 public abstract class AbstractTerminal implements TerminalExt {
 
     protected final String name;
@@ -47,6 +79,7 @@ public abstract class AbstractTerminal implements TerminalExt {
     protected final ColorPalette palette;
     protected Status status;
     protected Runnable onClose;
+    protected MouseTracking currentMouseTracking = MouseTracking.Off;
 
     public AbstractTerminal(String name, String type) throws IOException {
         this(name, type, null, SignalHandler.SIG_DFL);
@@ -209,7 +242,7 @@ public abstract class AbstractTerminal implements TerminalExt {
             Log.warn("Unable to retrieve infocmp for type " + type, e);
         }
         if (capabilities == null) {
-            capabilities = InfoCmp.getLoadedInfoCmp("ansi");
+            capabilities = InfoCmp.getDefaultInfoCmp("ansi");
         }
         InfoCmp.parseInfoCmp(capabilities, bools, ints, strings);
     }
@@ -228,18 +261,38 @@ public abstract class AbstractTerminal implements TerminalExt {
     }
 
     @Override
+    public MouseTracking getCurrentMouseTracking() {
+        return currentMouseTracking;
+    }
+
+    @Override
     public boolean trackMouse(MouseTracking tracking) {
-        return MouseSupport.trackMouse(this, tracking);
+        if (MouseSupport.trackMouse(this, tracking)) {
+            currentMouseTracking = tracking;
+            return true;
+        } else {
+            return false;
+        }
     }
 
     @Override
     public MouseEvent readMouseEvent() {
-        return lastMouseEvent = MouseSupport.readMouse(this, lastMouseEvent);
+        return readMouseEvent(getStringCapability(Capability.key_mouse));
     }
 
     @Override
     public MouseEvent readMouseEvent(IntSupplier reader) {
-        return lastMouseEvent = MouseSupport.readMouse(reader, lastMouseEvent);
+        return readMouseEvent(reader, getStringCapability(Capability.key_mouse));
+    }
+
+    @Override
+    public MouseEvent readMouseEvent(String prefix) {
+        return lastMouseEvent = MouseSupport.readMouse(this, lastMouseEvent, prefix);
+    }
+
+    @Override
+    public MouseEvent readMouseEvent(IntSupplier reader, String prefix) {
+        return lastMouseEvent = MouseSupport.readMouse(reader, lastMouseEvent, prefix);
     }
 
     @Override
@@ -294,5 +347,25 @@ public abstract class AbstractTerminal implements TerminalExt {
                 + name + '\'' + ", type='"
                 + type + '\'' + ", size='"
                 + getSize() + '\'' + ']';
+    }
+
+    /**
+     * Get the terminal's default foreground color.
+     * This method should be overridden by concrete implementations.
+     *
+     * @return the RGB value of the default foreground color, or -1 if not available
+     */
+    public int getDefaultForegroundColor() {
+        return -1;
+    }
+
+    /**
+     * Get the terminal's default background color.
+     * This method should be overridden by concrete implementations.
+     *
+     * @return the RGB value of the default background color, or -1 if not available
+     */
+    public int getDefaultBackgroundColor() {
+        return -1;
     }
 }
